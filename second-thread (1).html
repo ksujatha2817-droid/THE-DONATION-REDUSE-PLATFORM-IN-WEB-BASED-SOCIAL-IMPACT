@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Second Thread — Donation &amp; Reuse Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#23324D;
+    --ink-soft:#5B6A83;
+    --paper:#EFEAE0;
+    --paper-2:#E4DDCB;
+    --card:#F8F5EE;
+    --line:#CFC6AF;
+    --marigold:#D89B2E;
+    --marigold-deep:#B67F1C;
+    --rust:#A8442D;
+    --green:#4C7A5E;
+    --green-deep:#3A6049;
+    --radius:10px;
+    --shadow: 0 1px 2px rgba(35,50,77,0.06), 0 4px 14px rgba(35,50,77,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .app{
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    min-height:100vh;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;
+    border-bottom:1px solid var(--line);
+    background:var(--card);
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:34px;height:34px;flex-shrink:0;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;letter-spacing:-0.01em;}
+  .brand-tag{font-size:11.5px;color:var(--ink-soft);margin-top:1px;letter-spacing:0.02em;}
+
+  .tabs{display:flex;gap:4px;background:var(--paper-2);padding:4px;border-radius:999px;}
+  .tab-btn{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;font-size:13.5px;
+    padding:9px 18px;border-radius:999px;border:none;background:transparent;
+    color:var(--ink-soft);cursor:pointer;transition:all .15s ease;
+  }
+  .tab-btn.active{background:var(--ink);color:var(--paper);}
+  .tab-btn:not(.active):hover{color:var(--ink);}
+
+  main{max-width:1180px;margin:0 auto;padding:28px 28px 80px;}
+  .view{display:none;}
+  .view.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  h1.page-title{font-family:'Space Grotesk',sans-serif;font-size:26px;margin:0 0 4px;letter-spacing:-0.01em;}
+  .page-sub{color:var(--ink-soft);font-size:14px;margin:0 0 24px;max-width:640px;line-height:1.5;}
+
+  /* ---------- Stat row ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+  .stat-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;box-shadow:var(--shadow);
+  }
+  .stat-num{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:var(--ink);}
+  .stat-label{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+  /* ---------- Cards / panels ---------- */
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;margin-bottom:22px;box-shadow:var(--shadow);
+  }
+  .panel h2{font-family:'Space Grotesk',sans-serif;font-size:16px;margin:0 0 4px;}
+  .panel .hint{font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;}
+
+  .grid-2{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;}
+  @media(max-width:860px){.grid-2{grid-template-columns:1fr;} .stat-row{grid-template-columns:repeat(2,1fr);}}
+
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:0 0 5px;text-transform:uppercase;letter-spacing:0.03em;}
+  input,select,textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:7px;
+    font-family:'Inter',sans-serif;font-size:14px;background:#fff;color:var(--ink);margin-bottom:14px;
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--marigold);outline-offset:1px;border-color:var(--marigold);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  button.primary{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;
+    background:var(--rust);color:#fff;border:none;border-radius:7px;
+    padding:11px 20px;cursor:pointer;transition:background .15s ease;
+  }
+  button.primary:hover{background:#8f3a26;}
+  button.secondary{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;
+    background:transparent;color:var(--ink);border:1.5px solid var(--ink);border-radius:7px;
+    padding:8px 14px;cursor:pointer;
+  }
+  button.secondary:hover{background:var(--ink);color:var(--paper);}
+  button.small-action{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;
+    background:var(--green);color:#fff;border:none;border-radius:6px;padding:7px 12px;cursor:pointer;
+  }
+  button.small-action:hover{background:var(--green-deep);}
+  button.small-action.deliver{background:var(--marigold-deep);}
+  button.small-action.deliver:hover{background:#96650f;}
+  button:disabled{opacity:0.45;cursor:not-allowed;}
+
+  /* ---------- Basket items ---------- */
+  .basket-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;border:1px dashed var(--line);border-radius:7px;margin-bottom:8px;background:#fff;
+  }
+  .basket-item .meta{font-size:13px;}
+  .basket-item .meta .cat{font-weight:600;}
+  .basket-item .meta .sub{color:var(--ink-soft);font-size:12px;}
+  .remove-x{background:none;border:none;color:var(--rust);cursor:pointer;font-size:16px;line-height:1;padding:4px;}
+
+  /* ---------- NGO cards ---------- */
+  .ngo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  @media(max-width:700px){.ngo-grid{grid-template-columns:1fr;}}
+  .ngo-card{
+    border:1.5px solid var(--line);border-radius:9px;padding:14px;background:#fff;cursor:pointer;transition:.15s;
+  }
+  .ngo-card:hover{border-color:var(--marigold);}
+  .ngo-card.selected{border-color:var(--rust);background:#FBF1EA;}
+  .ngo-card .ngo-name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;}
+  .ngo-card .ngo-meta{font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+  .verified-badge{
+    display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;
+    background:var(--green);color:#fff;padding:2px 7px;border-radius:999px;
+  }
+  .pending-badge{
+    display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;
+    background:var(--paper-2);color:var(--ink-soft);padding:2px 7px;border-radius:999px;border:1px solid var(--line);
+  }
+
+  /* ---------- Table ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;font-family:'Space Grotesk',sans-serif;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.03em;color:var(--ink-soft);padding:8px 10px;border-bottom:1.5px solid var(--line);
+  }
+  td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .id-tag{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);}
+
+  /* ---------- Stitch tracker (signature element) ---------- */
+  .stitch-track{display:flex;align-items:center;}
+  .stitch-track .node{
+    width:11px;height:11px;border-radius:50%;background:var(--paper-2);border:2px solid var(--line);flex-shrink:0;
+    position:relative;
+  }
+  .stitch-track .node.done{background:var(--green);border-color:var(--green-deep);}
+  .stitch-track .node.current{background:var(--marigold);border-color:var(--marigold-deep);box-shadow:0 0 0 3px rgba(216,155,46,0.25);}
+  .stitch-track .seg{width:26px;height:0;border-top:2px dashed var(--line);margin:0 -1px;}
+  .stitch-track .seg.done{border-top:2px solid var(--green);}
+  .stitch-labels{display:flex;font-size:9.5px;color:var(--ink-soft);margin-top:5px;font-family:'IBM Plex Mono',monospace;}
+  .stitch-labels span{width:37px;text-align:center;}
+  .stitch-labels span:first-child{width:9px;text-align:left;}
+
+  .status-pill{
+    font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;display:inline-block;
+  }
+  .status-Listed{background:#E9E3D4;color:var(--ink-soft);}
+  .status-Scheduled{background:#FBEAD1;color:var(--marigold-deep);}
+  .status-Collected{background:#DCEADD;color:var(--green-deep);}
+  .status-Delivered{background:#D8E6DE;color:var(--green-deep);font-weight:700;}
+
+  .empty-state{
+    text-align:center;padding:34px 20px;color:var(--ink-soft);font-size:13.5px;
+    border:1px dashed var(--line);border-radius:9px;background:#fff;
+  }
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--paper);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13.5px;
+    padding:12px 22px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,0.25);
+    opacity:0;pointer-events:none;transition:all .3s ease;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .role-switch{display:flex;align-items:center;gap:8px;margin-bottom:18px;}
+  .role-switch select{width:auto;margin-bottom:0;min-width:220px;}
+  .role-switch .lbl{font-size:12px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;}
+
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .filter-row select{width:auto;margin-bottom:0;}
+
+  .bar-chart{display:flex;align-items:flex-end;gap:16px;height:150px;padding-top:10px;}
+  .bar-col{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;height:100%;justify-content:flex-end;}
+  .bar-fill{width:100%;max-width:44px;border-radius:5px 5px 2px 2px;transition:height .4s ease;}
+  .bar-num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);}
+  .bar-lbl{font-size:11px;color:var(--ink-soft);text-align:center;}
+
+  footer.note{max-width:1180px;margin:0 auto;padding:0 28px 40px;font-size:12px;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="16" fill="#23324D"/>
+        <path d="M8 17c3-6 7-9 9-9s6 3 9 9c-3 6-7 9-9 9s-6-3-9-9z" stroke="#EFEAE0" stroke-width="1.4" fill="none"/>
+        <path d="M6 17h22" stroke="#D89B2E" stroke-width="1.6" stroke-dasharray="2.4 2.4" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Second Thread</div>
+        <div class="brand-tag">donation &amp; reuse network</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-view="donor">Donor Portal</button>
+      <button class="tab-btn" data-view="ngo">NGO Portal</button>
+      <button class="tab-btn" data-view="admin">Admin Console</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ============ DONOR VIEW ============ -->
+    <section class="view active" id="view-donor">
+      <h1 class="page-title">Give your things a second thread</h1>
+      <p class="page-sub">List what you no longer need, pick a verified NGO nearby, and schedule a doorstep pickup. Every item is tracked from your door to delivery.</p>
+
+      <div class="stat-row" id="donor-stats"></div>
+
+      <div class="grid-2">
+        <div>
+          <div class="panel">
+            <h2>List an item</h2>
+            <p class="hint">Add each item to your basket, then schedule one pickup for everything at once.</p>
+            <div class="field-row">
+              <div>
+                <label>Category</label>
+                <select id="item-category">
+                  <option>Clothing</option>
+                  <option>Footwear</option>
+                  <option>Bedding &amp; Linen</option>
+                  <option>Kitchenware</option>
+                  <option>Furniture</option>
+                  <option>Books &amp; Stationery</option>
+                  <option>Toys</option>
+                </select>
+              </div>
+              <div>
+                <label>Quantity</label>
+                <input type="number" id="item-qty" min="1" value="1">
+              </div>
+            </div>
+            <label>Condition</label>
+            <select id="item-condition">
+              <option>Gently used</option>
+              <option>Like new</option>
+              <option>Needs minor repair</option>
+            </select>
+            <label>Short description</label>
+            <input type="text" id="item-desc" placeholder="e.g. Winter jackets, size M–L, 4 pieces">
+            <button class="primary" id="add-item-btn">Add to basket</button>
+          </div>
+
+          <div class="panel" id="basket-panel">
+            <h2>Your basket</h2>
+            <p class="hint">Items waiting to be scheduled for pickup.</p>
+            <div id="basket-list"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <h2>Choose an NGO</h2>
+            <p class="hint">Pick a verified partner that accepts your item categories.</p>
+            <div class="ngo-grid" id="donor-ngo-grid"></div>
+          </div>
+
+          <div class="panel">
+            <h2>Schedule pickup</h2>
+            <p class="hint">We'll send this basket to your selected NGO.</p>
+            <label>Pickup address</label>
+            <input type="text" id="pickup-address" placeholder="Flat / Street / Area, City" value="12 Lloyds Road, Chennai">
+            <div class="field-row">
+              <div>
+                <label>Date</label>
+                <input type="date" id="pickup-date">
+              </div>
+              <div>
+                <label>Time slot</label>
+                <select id="pickup-time">
+                  <option>9:00 – 11:00 AM</option>
+                  <option>11:00 AM – 1:00 PM</option>
+                  <option>3:00 – 5:00 PM</option>
+                  <option>5:00 – 7:00 PM</option>
+                </select>
+              </div>
+            </div>
+            <button class="primary" id="schedule-btn">Schedule pickup</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Your donation history</h2>
+        <p class="hint">Track every donation's journey, from listing to delivery.</p>
+        <div id="donor-history"></div>
+      </div>
+    </section>
+
+    <!-- ============ NGO VIEW ============ -->
+    <section class="view" id="view-ngo">
+      <h1 class="page-title">NGO Portal</h1>
+      <p class="page-sub">Manage incoming donation requests, confirm collection, and update delivery status for the people you serve.</p>
+
+      <div class="role-switch">
+        <span class="lbl">Signed in as</span>
+        <select id="ngo-select"></select>
+      </div>
+
+      <div id="ngo-status-banner"></div>
+
+      <div class="panel">
+        <h2>Scheduled pickups</h2>
+        <p class="hint">Donations donors have scheduled with you. Mark them collected once picked up.</p>
+        <div id="ngo-scheduled"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Collected — pending delivery</h2>
+        <p class="hint">Items you've picked up. Mark delivered once distributed to a beneficiary.</p>
+        <div id="ngo-collected"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Delivered</h2>
+        <p class="hint">Completed donations distributed through your organization.</p>
+        <div id="ngo-delivered"></div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN VIEW ============ -->
+    <section class="view" id="view-admin">
+      <h1 class="page-title">Admin Console</h1>
+      <p class="page-sub">Verify NGOs, monitor collections, and track platform-wide impact.</p>
+
+      <div class="stat-row" id="admin-stats"></div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h2>Donations by status</h2>
+          <div class="bar-chart" id="status-chart"></div>
+        </div>
+        <div class="panel">
+          <h2>Items by category</h2>
+          <div class="bar-chart" id="category-chart"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>NGO verification</h2>
+        <p class="hint">Approve or suspend organizations that can receive donations.</p>
+        <table>
+          <thead><tr><th>Organization</th><th>Location</th><th>Categories</th><th>Status</th><th></th></tr></thead>
+          <tbody id="admin-ngo-table"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>All donations</h2>
+        <div class="filter-row">
+          <select id="admin-filter">
+            <option value="All">All statuses</option>
+            <option value="Listed">Listed</option>
+            <option value="Scheduled">Scheduled</option>
+            <option value="Collected">Collected</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Item</th><th>Donor</th><th>NGO</th><th>Journey</th><th>Status</th></tr></thead>
+          <tbody id="admin-donations-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="note">Prototype build — data resets when you reload the page. No real payments, accounts, or NGOs are involved.</footer>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ============ STATE ============ */
+let idCounter = 1000;
+const genId = () => 'DN-' + (idCounter++);
+
+const donor = { name: 'Guest Donor', city: 'Chennai' };
+
+let ngos = [
+  { id:'ngo1', name:'Shelter of Hope Trust', location:'Adyar, Chennai', categories:['Clothing','Footwear','Bedding & Linen'], verified:true },
+  { id:'ngo2', name:'Second Chance Foundation', location:'T. Nagar, Chennai', categories:['Furniture','Kitchenware','Books & Stationery'], verified:true },
+  { id:'ngo3', name:'Little Steps Orphanage', location:'Velachery, Chennai', categories:['Clothing','Toys','Books & Stationery'], verified:true },
+  { id:'ngo4', name:'Warmth Collective', location:'Mylapore, Chennai', categories:['Bedding & Linen','Clothing'], verified:false },
+];
+
+let basket = []; // items not yet scheduled: {id, category, qty, condition, desc}
+
+let donations = [
+  { id:genId(), items:[{category:'Clothing',qty:6,condition:'Gently used',desc:'Mixed season clothing'}], ngoId:'ngo1', address:'22 Kasturba Nagar, Chennai', date:'2026-08-05', time:'11:00 AM – 1:00 PM', status:'Delivered', createdAt:'2026-08-01' },
+  { id:genId(), items:[{category:'Kitchenware',qty:3,condition:'Like new',desc:'Steel utensil set'}], ngoId:'ngo2', address:'8 Anna Salai, Chennai', date:'2026-08-10', time:'9:00 – 11:00 AM', status:'Collected', createdAt:'2026-08-07' },
+  { id:genId(), items:[{category:'Toys',qty:5,condition:'Gently used',desc:'Board games and soft toys'}], ngoId:'ngo3', address:'14 Velachery Main Rd, Chennai', date:'2026-08-14', time:'3:00 – 5:00 PM', status:'Scheduled', createdAt:'2026-08-12' },
+];
+
+let selectedNgoId = null;
+let currentView = 'donor';
+let currentNgoSession = 'ngo1';
+let adminFilter = 'All';
+
+const STAGES = ['Listed','Scheduled','Collected','Delivered'];
+const CATEGORY_ORDER = ['Clothing','Footwear','Bedding & Linen','Kitchenware','Furniture','Books & Stationery','Toys'];
+
+/* ============ HELPERS ============ */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function itemsSummary(items){
+  return items.map(i => `${i.qty}× ${i.category}`).join(', ');
+}
+
+function stitchTrack(status){
+  const idx = STAGES.indexOf(status);
+  let html = '<div class="stitch-track">';
+  STAGES.forEach((s,i)=>{
+    let cls = 'node';
+    if(i < idx) cls += ' done';
+    else if(i === idx) cls += ' current';
+    html += `<div class="${cls}" title="${s}"></div>`;
+    if(i < STAGES.length-1){
+      html += `<div class="seg ${i < idx ? 'done':''}"></div>`;
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+function ngoById(id){ return ngos.find(n=>n.id===id); }
+
+/* ============ NAV ============ */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    currentView = btn.dataset.view;
+    document.getElementById('view-'+currentView).classList.add('active');
+    renderAll();
+  });
+});
+
+/* ============ DONOR VIEW ============ */
+function renderDonorStats(){
+  const mine = donations; // single demo donor
+  const totalItems = mine.reduce((sum,d)=> sum + d.items.reduce((s,i)=>s+i.qty,0), 0);
+  const delivered = mine.filter(d=>d.status==='Delivered').length;
+  const inProgress = mine.filter(d=>d.status!=='Delivered').length;
+  const stats = [
+    {label:'Donations made', value: mine.length},
+    {label:'Items donated', value: totalItems},
+    {label:'In progress', value: inProgress},
+    {label:'Delivered', value: delivered},
+  ];
+  document.getElementById('donor-stats').innerHTML = stats.map(s=>`
+    <div class="stat-card"><div class="stat-num">${s.value}</div><div class="stat-label">${s.label}</div></div>
+  `).join('');
+}
+
+function renderBasket(){
+  const el = document.getElementById('basket-list');
+  if(basket.length === 0){
+    el.innerHTML = '<div class="empty-state">Your basket is empty. Add an item above to get started.</div>';
+    return;
+  }
+  el.innerHTML = basket.map((it,i)=>`
+    <div class="basket-item">
+      <div class="meta">
+        <div class="cat">${it.qty}× ${it.category} — ${it.condition}</div>
+        <div class="sub">${it.desc || 'No description added'}</div>
+      </div>
+      <button class="remove-x" data-idx="${i}" title="Remove">✕</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('.remove-x').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      basket.splice(parseInt(b.dataset.idx),1);
+      renderBasket();
+    });
+  });
+}
+
+function renderDonorNgoGrid(){
+  const el = document.getElementById('donor-ngo-grid');
+  const verifiedNgos = ngos.filter(n=>n.verified);
+  el.innerHTML = verifiedNgos.map(n=>`
+    <div class="ngo-card ${selectedNgoId===n.id?'selected':''}" data-id="${n.id}">
+      <div class="ngo-name">${n.name} <span class="verified-badge">✓ Verified</span></div>
+      <div class="ngo-meta">${n.location}<br>Accepts: ${n.categories.join(', ')}</div>
+    </div>
+  `).join('');
+  el.querySelectorAll('.ngo-card').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      selectedNgoId = c.dataset.id;
+      renderDonorNgoGrid();
+    });
+  });
+}
+
+function renderDonorHistory(){
+  const el = document.getElementById('donor-history');
+  if(donations.length===0){
+    el.innerHTML = '<div class="empty-state">No donations yet.</div>';
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>ID</th><th>Items</th><th>NGO</th><th>Journey</th><th>Status</th></tr></thead>
+    <tbody>
+    ${donations.slice().reverse().map(d=>`
+      <tr>
+        <td class="id-tag">${d.id}</td>
+        <td>${itemsSummary(d.items)}</td>
+        <td>${ngoById(d.ngoId)?.name || '—'}</td>
+        <td>${stitchTrack(d.status)}</td>
+        <td><span class="status-pill status-${d.status}">${d.status}</span></td>
+      </tr>
+    `).join('')}
+    </tbody>
+  </table>`;
+}
+
+document.getElementById('add-item-btn').addEventListener('click', ()=>{
+  const category = document.getElementById('item-category').value;
+  const qty = parseInt(document.getElementById('item-qty').value) || 1;
+  const condition = document.getElementById('item-condition').value;
+  const desc = document.getElementById('item-desc').value.trim();
+  basket.push({category, qty, condition, desc});
+  document.getElementById('item-desc').value = '';
+  document.getElementById('item-qty').value = 1;
+  renderBasket();
+  toast('Added to basket');
+});
+
+document.getElementById('schedule-btn').addEventListener('click', ()=>{
+  if(basket.length === 0){ toast('Add at least one item to your basket first'); return; }
+  if(!selectedNgoId){ toast('Choose an NGO before scheduling'); return; }
+  const address = document.getElementById('pickup-address').value.trim();
+  const date = document.getElementById('pickup-date').value;
+  const time = document.getElementById('pickup-time').value;
+  if(!address || !date){ toast('Add a pickup address and date'); return; }
+
+  donations.push({
+    id: genId(),
+    items: basket.slice(),
+    ngoId: selectedNgoId,
+    address, date, time,
+    status: 'Scheduled',
+    createdAt: new Date().toISOString().slice(0,10)
+  });
+  basket = [];
+  selectedNgoId = null;
+  renderBasket();
+  renderDonorNgoGrid();
+  renderDonorStats();
+  renderDonorHistory();
+  toast('Pickup scheduled — the NGO has been notified');
+});
+
+/* ============ NGO VIEW ============ */
+function populateNgoSelect(){
+  const sel = document.getElementById('ngo-select');
+  sel.innerHTML = ngos.map(n=>`<option value="${n.id}">${n.name}</option>`).join('');
+  sel.value = currentNgoSession;
+}
+document.getElementById('ngo-select').addEventListener('change', (e)=>{
+  currentNgoSession = e.target.value;
+  renderNgoView();
+});
+
+function renderNgoView(){
+  const ngo = ngoById(currentNgoSession);
+  const banner = document.getElementById('ngo-status-banner');
+  if(!ngo.verified){
+    banner.innerHTML = `<div class="panel" style="border-color:var(--rust);background:#FBF1EA;">
+      <h2 style="color:var(--rust);">Verification pending</h2>
+      <p class="hint" style="margin-bottom:0;">This organization isn't verified yet. An admin needs to approve it before new pickups can be scheduled with it.</p>
+    </div>`;
+  } else {
+    banner.innerHTML = '';
+  }
+
+  const mine = donations.filter(d=>d.ngoId===currentNgoSession);
+  const scheduled = mine.filter(d=>d.status==='Scheduled');
+  const collected = mine.filter(d=>d.status==='Collected');
+  const delivered = mine.filter(d=>d.status==='Delivered');
+
+  const rowsFor = (list, actionLabel, actionClass, nextStatus) => {
+    if(list.length===0) return '<div class="empty-state">Nothing here right now.</div>';
+    return `<table><thead><tr><th>ID</th><th>Items</th><th>Pickup address</th><th>Date / time</th>${actionLabel ? '<th></th>':''}</tr></thead><tbody>
+    ${list.map(d=>`
+      <tr>
+        <td class="id-tag">${d.id}</td>
+        <td>${itemsSummary(d.items)}</td>
+        <td>${d.address}</td>
+        <td>${d.date}, ${d.time}</td>
+        ${actionLabel ? `<td><button class="small-action ${actionClass}" data-id="${d.id}" data-next="${nextStatus}">${actionLabel}</button></td>` : ''}
+      </tr>
+    `).join('')}
+    </tbody></table>`;
+  };
+
+  document.getElementById('ngo-scheduled').innerHTML = rowsFor(scheduled, 'Mark collected', '', 'Collected');
+  document.getElementById('ngo-collected').innerHTML = rowsFor(collected, 'Mark delivered', 'deliver', 'Delivered');
+  document.getElementById('ngo-delivered').innerHTML = rowsFor(delivered, null);
+
+  document.querySelectorAll('#ngo-scheduled button, #ngo-collected button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const d = donations.find(x=>x.id===b.dataset.id);
+      d.status = b.dataset.next;
+      toast(`${d.id} marked ${b.dataset.next}`);
+      renderNgoView();
+      renderDonorHistory();
+      renderDonorStats();
+      renderAdminAll();
+    });
+  });
+}
+
+/* ============ ADMIN VIEW ============ */
+function renderAdminStats(){
+  const totalDonors = 1; // single demo donor session
+  const totalNgos = ngos.length;
+  const verifiedNgos = ngos.filter(n=>n.verified).length;
+  const delivered = donations.filter(d=>d.status==='Delivered').length;
+  const rate = donations.length ? Math.round(delivered/donations.length*100) : 0;
+  const stats = [
+    {label:'Registered donors', value: totalDonors},
+    {label:'Verified NGOs', value: `${verifiedNgos}/${totalNgos}`},
+    {label:'Total donations', value: donations.length},
+    {label:'Delivery rate', value: rate + '%'},
+  ];
+  document.getElementById('admin-stats').innerHTML = stats.map(s=>`
+    <div class="stat-card"><div class="stat-num">${s.value}</div><div class="stat-label">${s.label}</div></div>
+  `).join('');
+}
+
+function renderCharts(){
+  const statusCounts = {};
+  STAGES.forEach(s=>statusCounts[s]=0);
+  donations.forEach(d=>statusCounts[d.status]++);
+  const maxStatus = Math.max(1, ...Object.values(statusCounts));
+  const colors = {Listed:'#CFC6AF', Scheduled:'#D89B2E', Collected:'#4C7A5E', Delivered:'#23324D'};
+  document.getElementById('status-chart').innerHTML = STAGES.map(s=>`
+    <div class="bar-col">
+      <div class="bar-num">${statusCounts[s]}</div>
+      <div class="bar-fill" style="height:${(statusCounts[s]/maxStatus*100) || 2}%;background:${colors[s]};"></div>
+      <div class="bar-lbl">${s}</div>
+    </div>
+  `).join('');
+
+  const catCounts = {};
+  CATEGORY_ORDER.forEach(c=>catCounts[c]=0);
+  donations.forEach(d=> d.items.forEach(i=> catCounts[i.category] = (catCounts[i.category]||0) + i.qty ));
+  const maxCat = Math.max(1, ...Object.values(catCounts));
+  document.getElementById('category-chart').innerHTML = CATEGORY_ORDER.map(c=>`
+    <div class="bar-col">
+      <div class="bar-num">${catCounts[c]}</div>
+      <div class="bar-fill" style="height:${(catCounts[c]/maxCat*100) || 2}%;background:#A8442D;"></div>
+      <div class="bar-lbl">${c.replace(' & ','<br>')}</div>
+    </div>
+  `).join('');
+}
+
+function renderAdminNgoTable(){
+  document.getElementById('admin-ngo-table').innerHTML = ngos.map(n=>`
+    <tr>
+      <td><strong>${n.name}</strong></td>
+      <td>${n.location}</td>
+      <td>${n.categories.join(', ')}</td>
+      <td>${n.verified ? '<span class="verified-badge">✓ Verified</span>' : '<span class="pending-badge">Pending</span>'}</td>
+      <td><button class="secondary" data-id="${n.id}">${n.verified ? 'Suspend' : 'Verify'}</button></td>
+    </tr>
+  `).join('');
+  document.querySelectorAll('#admin-ngo-table button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const n = ngoById(b.dataset.id);
+      n.verified = !n.verified;
+      toast(`${n.name} ${n.verified ? 'verified' : 'suspended'}`);
+      renderAdminAll();
+      renderDonorNgoGrid();
+      populateNgoSelect();
+      renderNgoView();
+    });
+  });
+}
+
+function renderAdminDonationsTable(){
+  const filtered = adminFilter === 'All' ? donations : donations.filter(d=>d.status===adminFilter);
+  const el = document.getElementById('admin-donations-table');
+  if(filtered.length===0){
+    el.innerHTML = '<tr><td colspan="6"><div class="empty-state">No donations match this filter.</div></td></tr>';
+    return;
+  }
+  el.innerHTML = filtered.slice().reverse().map(d=>`
+    <tr>
+      <td class="id-tag">${d.id}</td>
+      <td>${itemsSummary(d.items)}</td>
+      <td>${donor.name}</td>
+      <td>${ngoById(d.ngoId)?.name || '—'}</td>
+      <td>${stitchTrack(d.status)}</td>
+      <td><span class="status-pill status-${d.status}">${d.status}</span></td>
+    </tr>
+  `).join('');
+}
+document.getElementById('admin-filter').addEventListener('change', (e)=>{
+  adminFilter = e.target.value;
+  renderAdminDonationsTable();
+});
+
+function renderAdminAll(){
+  renderAdminStats();
+  renderCharts();
+  renderAdminNgoTable();
+  renderAdminDonationsTable();
+}
+
+/* ============ INIT ============ */
+function renderAll(){
+  if(currentView==='donor'){
+    renderDonorStats();
+    renderBasket();
+    renderDonorNgoGrid();
+    renderDonorHistory();
+  } else if(currentView==='ngo'){
+    populateNgoSelect();
+    renderNgoView();
+  } else if(currentView==='admin'){
+    renderAdminAll();
+  }
+}
+
+document.getElementById('pickup-date').value = '2026-08-20';
+populateNgoSelect();
+renderAll();
+</script>
+</body>
+</html>
