@@ -1,0 +1,2 @@
+# THE-DONATION-REDUSE-PLATFORM-IN-WEB-BASED-SOCIAL-IMPACT
+The Donation &amp; Reduce Platform is a web-based social impact system designed to reduce waste and encourage the donation and reuse of unused resources. The platform connects people, organizations, NGOs, and communities that have excess food, clothes, books, furniture, electronic items, and other reusable materials with people who need them.  
